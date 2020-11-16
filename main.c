@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "student.h"
 #include "db.h"
+#define BUFFERSIZE 100
 
 
 int main(int argc, char const *argv[]) {
@@ -17,9 +18,10 @@ int main(int argc, char const *argv[]) {
         student_file = argv[1]; printf("file : %s \n",student_file);
         database_t db_student;
         db_init(&db_student);
-        printf("ok\n");
-        db_load(&db_student,student_file);
         
+        db_load(&db_student,student_file);
+        printf("*** FINISH ***\n");
+
     }
     else{
         printf("Pas de fichier \n");

@@ -74,6 +74,19 @@ void db_delete(database_t *db, student_t *s){
 void db_save(database_t *db, const char *path);
 
 
+void db_afficher(database_t* db) {
+    char* buff = (char*)malloc(1000*sizeof(char));
+    printf("%zd elements dans la liste.\n", db->lsize);
+    for (size_t i = 999994; i < db->lsize; i++) {
+        
+        printf("%ld ",i);
+        student_to_str(buff, &(db->data[i]));
+        printf("%s\n",buff);
+    }
+    free(buff);
+    
+}
+
 
 /**
  * Load the content of a database of students from a file.
@@ -87,25 +100,23 @@ void db_load(database_t *db, const char *path){
     
     if(!file_data) {fclose(file_data);return;} // Don't get acces to file
     
-    student_t* obj_student=NULL;
-    //long int a= fseek(file_data, -sizeof(student_t)*10, SEEK_END);
+    student_t obj_student;student_t* stud_ptr = &obj_student;
 
-    //fseek(file_data, 0L, SEEK_END); 
-    //long int file_size = ftell(file_data)/sizeof(student_t);
-    //fseek(file_data, sizeof(student_t), SEEK_SET);
+    // get nb of line in the file
+    fseek(file_data, 0L, SEEK_END); 
+    long int file_size = ftell(file_data)/sizeof(student_t);
+    fseek(file_data, sizeof(student_t), SEEK_SET);
     
-    
-    for(int i=0;i <10; i++)
+    for(int i=0;i <file_size; i++)
     {
         
-        //printf("%d, ",i);
-        fread(obj_student,sizeof(*obj_student),1,file_data);
-        db_add(db,obj_student);
+        fread(&obj_student,sizeof(obj_student),1,file_data);
+        db_add(db,&obj_student);
         //printf("id : %u\nFirst name : %s\nLast name : %s\nSection : %s\nAnnif : %d/%d/%d\n",obj_student->id,obj_student->fname,obj_student->lname,obj_student->section,obj_student->birthdate.tm_mday,obj_student->birthdate.tm_mon,obj_student->birthdate.tm_year);
         
     };
 
-    
+    db_afficher(db);
 
     fclose(file_data);
     
@@ -131,6 +142,11 @@ void db_init(database_t *db){
         perror("Erreur lors de l'allocation de la memoire!\n");
         exit(1);
     }
+
+    printf("\n*** INITIALISATION DE LA BASE DE DONNEES ***\n");
 }
+
+
+
 
 #endif

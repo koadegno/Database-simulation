@@ -71,19 +71,40 @@ void db_delete(database_t *db, student_t *s){
  * Save the content of a database_t to the specified file.
  * TODO: implement this function
  **/
-void db_save(database_t *db, const char *path);
+void db_save(database_t *db, const char *path){
+    
+    FILE* ptr_file = fopen(path,"wb");
+
+    if (!ptr_file){ printf("\nERREUR FILE\n"); return;}
+
+    student_t var = db->data[db->lsize-1];
+    char t[256];
+    student_to_str(t,&var);
+    printf("etudiant : %s\n",t);
+
+    //fwrite(&var,sizeof(student_t),1,ptr_file);
+    for(size_t i =0; i < db->lsize; i++){
+        printf("the idx : %ld ",i );
+        fwrite(&(db->data[i]),sizeof(db->data[i]),1,ptr_file);
+
+     } 
+    //db_afficher(db);
+    fclose(ptr_file);
+    printf("\nSAVE RUNNING\n");
+
+
+}
 
 
 void db_afficher(database_t* db) {
-    char* buff = (char*)malloc(1000*sizeof(char));
-    printf("%zd elements dans la liste.\n", db->lsize);
-    for (size_t i = 999994; i < db->lsize; i++) {
-        
-        printf("%ld ",i);
-        student_to_str(buff, &(db->data[i]));
+    char buff[256];
+    printf("%zd eléments dans la DB.\n\n", db->lsize);
+    for (size_t i = 999998; i < db->lsize; i++) {
+        printf("%ld",i);
+        student_to_str(buff, &( db->data[i] ));
         printf("%s\n",buff);
     }
-    free(buff);
+    
     
 }
 
@@ -100,24 +121,19 @@ void db_load(database_t *db, const char *path){
     
     if(!file_data) {fclose(file_data);return;} // Don't get acces to file
     
-    student_t obj_student;student_t* stud_ptr = &obj_student;
+    student_t obj_student;
 
     // get nb of line in the file
-    fseek(file_data, 0L, SEEK_END); 
+    /*fseek(file_data, 0L, SEEK_END); 
     long int file_size = ftell(file_data)/sizeof(student_t);
-    fseek(file_data, sizeof(student_t), SEEK_SET);
+    fseek(file_data, sizeof(student_t), SEEK_SET);*/
     
-    for(int i=0;i <file_size; i++)
+    while(fread(&obj_student,sizeof(obj_student),1,file_data))
     {
-        
-        fread(&obj_student,sizeof(obj_student),1,file_data);
         db_add(db,&obj_student);
         //printf("id : %u\nFirst name : %s\nLast name : %s\nSection : %s\nAnnif : %d/%d/%d\n",obj_student->id,obj_student->fname,obj_student->lname,obj_student->section,obj_student->birthdate.tm_mday,obj_student->birthdate.tm_mon,obj_student->birthdate.tm_year);
         
     };
-
-    db_afficher(db);
-
     fclose(file_data);
     
 }

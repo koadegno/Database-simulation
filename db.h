@@ -99,10 +99,11 @@ void db_save(database_t *db, const char *path){
 void db_afficher(database_t* db) {
     char buff[256];
     printf("%zd eléments dans la DB.\n\n", db->lsize);
-    for (size_t i = 999998; i < db->lsize; i++) {
+    for (size_t i = 0; i < db->lsize; i++) {
         printf("%ld",i);
         student_to_str(buff, &( db->data[i] ));
         printf("%s\n",buff);
+        sleep(2);
     }
     
     
@@ -159,10 +160,64 @@ void db_init(database_t *db){
         exit(1);
     }
 
-    printf("\n*** INITIALISATION DE LA BASE DE DONNEES ***\n");
+    
 }
 
+/**
+ * Function to search into the db
+ * field is a number for representing each field 
+ * 
+ **/
+void db_search(database_t* start_db, database_t* end_db,char to_search[], int field){
 
+    to_search[strlen(to_search) -1] = '\0';struct tm datee;strptime(to_search, "%d/%m/%Y", &datee);
+    for(int i =0;i < start_db->lsize;i++){
+        
+//select fname=Yury
+
+        switch (field)
+        {
+        
+        
+        case 0: // field == fname
+            
+            //printf("le nom : %s ",to_search);
+            //if(tmp[1] == 'u' && tmp[0] == 'Y' && tmp[2] == 'r'){printf("le nom : %s ",tmp);}
+            if(!strcmp((start_db->data[i]).fname,to_search) ){
+                db_add(end_db,&(start_db->data[i]));
+            }
+            break;
+        case 1:
+
+            if(!strcmp((start_db->data[i]).lname,to_search) ){
+                db_add(end_db,&(start_db->data[i]));
+            }
+            break;
+        case 2:
+            {int id = atoi(to_search);
+            //printf("le nb : %d",id);
+            if((start_db->data[i]).id == id ){
+                db_add(end_db,&(start_db->data[i]));
+            }}
+            break;
+        case 3:
+            if(!strcmp((start_db->data[i]).section,to_search) ){
+                db_add(end_db,&(start_db->data[i]));
+            }
+            break;
+        case 4:
+        if((start_db->data[i]).birthdate.tm_mday == datee.tm_mday &&
+            (start_db->data[i]).birthdate.tm_mon == datee.tm_mon && 
+            (start_db->data[i]).birthdate.tm_year == datee.tm_year ){
+                db_add(end_db,&(start_db->data[i]));
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+}
 
 
 #endif

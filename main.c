@@ -6,6 +6,8 @@
 #include "student.h"
 #include <string.h>
 #include "parsing.c"
+
+#include "find.h"
 #include "db.h"
 
 #define BUFFERSIZE 100
@@ -152,7 +154,7 @@ int main(int argc, char const *argv[])
         database_t db_student;
         db_init(&db_student);printf("\n*** INITIALISATION DE LA BASE DE DONNEES ***\n");
         db_load(&db_student, student_file);
-
+        //db_afficher(&db_student);
         printf("---------------------------------------------------\n\n");
 
         select_commande(&db_student);

@@ -159,7 +159,7 @@ void *find_in_birth(void* val){
 /**
  * Thread function to find section inside
  * the db
- * param :  find_param
+ * param :  find_param.
  */
 void *find_in_section(void* val){
     find_param* param = (find_param*)val;

@@ -91,7 +91,7 @@ void select_commande(database_t* student_db)
 
             
             if(!parse_update(commd_rest,field_filter,value_filter,field_to_update,update_value)){
-                error("update");
+                error("update.");
                 break;
             }
             printf("\nUPDATE GOOD\n\n");

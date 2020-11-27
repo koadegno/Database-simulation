@@ -9,11 +9,12 @@
 #include <time.h>
 #include "parsing.h"
 #include "db.h"
+#include <stdbool.h>
 #define thread_max 4
 
-pthread_mutex_t lock;
-pthread_t thread[thread_max]; 
-int current_find_thread = 0; /**nb of current thread */
+pthread_mutex_t lock;           /** mutex to managa **/
+pthread_t thread[thread_max];   /** thread to manage **/
+int current_find_thread = 0;    /**nb of current thread **/
 
 
 /**
@@ -27,6 +28,11 @@ typedef struct {
     
 } find_param;
 
+/**
+ * Thread function to find fname inside
+ * the db
+ * param :  find_param
+ */
 void *find_in_fname(void* val){
     find_param* param = (find_param*)val;
 
@@ -54,7 +60,11 @@ void *find_in_fname(void* val){
     return NULL;
 }
 
-
+/**
+ * Thread function to find lname inside
+ * the db
+ * param :  find_param
+ */
 void *find_in_lname(void* val){
     find_param* param = (find_param*)val;
 
@@ -80,16 +90,26 @@ void *find_in_lname(void* val){
     return ;
 }
 
-
+/**
+ * Thread function to find id inside
+ * the db
+ * param :  find_param
+ */
 void *find_in_id(void* val){
     find_param* param = (find_param*)val;
     int id = atoi(param->to_search);
+
     pthread_mutex_lock(&lock);
     int num = current_find_thread++; // all threads need that global variable 
     pthread_mutex_unlock(&lock);
-    int max = (param->begin)->lsize;
 
-    for(size_t i = num * (max/4); i < ((num+1) * (max/4));i++){
+    size_t max = (param->begin)->lsize;
+    size_t stop = ((num+1) * (max/4));
+
+    // if max and nb of thread aren't Greatest common divisor (pgcd)
+    if (thread[3] == pthread_self()){stop+=max-stop;printf("Taille max du dernier thread : %ld avec tid : %ld\n",stop,pthread_self());}
+    
+    for(size_t i = num * (max/4); i < stop;i++){
 
         if((param->begin->data[i]).id == id ){
                 pthread_mutex_lock(&lock);
@@ -101,7 +121,11 @@ void *find_in_id(void* val){
     return NULL;
 }   
 
-
+/**
+ * Thread function to find birth inside
+ * the db
+ * param :  find_param
+ */
 void *find_in_birth(void* val){
     find_param* param = (find_param*)val;
     
@@ -132,7 +156,11 @@ void *find_in_birth(void* val){
     return NULL;
 }
 
-
+/**
+ * Thread function to find section inside
+ * the db
+ * param :  find_param
+ */
 void *find_in_section(void* val){
     find_param* param = (find_param*)val;
 
@@ -172,14 +200,6 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
         
     switch (field){
     case 0: // field == fname
-        
-        //printf("le nom : %s ",to_search);
-        //if(tmp[1] == 'u' && tmp[0] == 'Y' && tmp[2] == 'r'){printf("le nom : %s ",tmp);}
-        /*if(!strcmp((start_db->data[i]).fname,to_search) ){
-            db_add(end_db,&(start_db->data[i]));
-        }*/
-        
-        
             
         for (int i = 0; i < thread_max; i++) { 
             if(pthread_create(&thread[i], NULL,find_in_fname, (void*)&to_pass) != 0){
@@ -192,17 +212,9 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
             if (!pthread_join(thread[i], NULL)){printf("Le %d a finis : %ld\n",i,thread[i]);}; 
         } 
 
-        
         break;
     case 1: // field == lname
 
-        /*if(!strcmp((start_db->data[i]).lname,to_search) ){
-            db_add(end_db,&(start_db->data[i]));
-        }
-        break;*/
-
-        
-        //to_pass.begin = start_db; to_pass.end = end_db;to_pass.to_search = to_search;
         
         for (int i = 0; i < thread_max; i++) {
                 
@@ -217,23 +229,15 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
             pthread_join(thread[i], NULL); 
         } 
 
-        pthread_mutex_destroy(&lock);
+        
         break;
 
     case 2: // field == id
-        /*{int id = atoi(to_search);
-        //printf("le nb : %d",id);
-        if((start_db->data[i]).id == id ){
-            db_add(end_db,&(start_db->data[i]));
-        }}
-        break;*/
-
-        
-        //to_pass.begin = start_db; to_pass.end = end_db;to_pass.to_search = to_search;
-            
+                    
         for (int i = 0; i < thread_max; i++) { 
-            pthread_create(&thread[i], NULL,find_in_id, (void*)&to_pass); 
-        
+            if(pthread_create(&thread[i], NULL,find_in_id, (void*)&to_pass) != 0){
+                printf("*** PEUT PAS CREER LE THREAD ***\n");
+            };
         }
 
         for (int i = 0; i < thread_max; i++) { 
@@ -243,14 +247,11 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
         break;
 
     case 3: // field == section
-        /*if(!strcmp((start_db->data[i]).section,to_search) ){
-            db_add(end_db,&(start_db->data[i]));
-        }
-        break;*/
-
-        for (int i = 0; i < thread_max; i++) { 
-            pthread_create(&thread[i], NULL,find_in_section, (void*)&to_pass); 
         
+        for (int i = 0; i < thread_max; i++) { 
+            if(pthread_create(&thread[i], NULL,find_in_section, (void*)&to_pass) != 0){
+                printf("*** PEUT PAS CREER LE THREAD ***\n");
+            };
         }
 
         for (int i = 0; i < thread_max; i++) { 
@@ -260,19 +261,11 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
         break;
 
     case 4: // field == birthdate
-    /*if((start_db->data[i]).birthdate.tm_mday == datee.tm_mday &&
-        (start_db->data[i]).birthdate.tm_mon == datee.tm_mon && 
-        (start_db->data[i]).birthdate.tm_year == datee.tm_year ){
-            db_add(end_db,&(start_db->data[i]));
-        }
-        break;*/
 
-        
-        //to_pass.begin = start_db; to_pass.end = end_db;strcpy(to_pass.to_search,to_search);
-        
         for (int i = 0; i < thread_max; i++) { 
-            pthread_create(&thread[i], NULL,find_in_birth, (void*)&to_pass); 
-        
+            if(pthread_create(&thread[i], NULL,find_in_birth, (void*)&to_pass) != 0){
+                printf("*** PEUT PAS CREER LE THREAD ***\n");
+            };
         }
 
         for (int i = 0; i < thread_max; i++) { 
@@ -285,6 +278,59 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
     }
     current_find_thread = 0;
     pthread_mutex_destroy(&lock);
+}
+
+void error(char *err)
+{
+    printf("\n**Querie Error %s**\nTry again\n", err);
+}
+
+bool choose_right_field_to_search(char* field,char* value,database_t* student_db,database_t* resultat){
+
+    // choose right field
+    bool ret = true;
+    if(!strcmp(field,"fname")){
+        
+        db_init(resultat);
+        printf("fname : %s", value);
+        
+        db_search(student_db,resultat,value,0);
+
+    } 
+    else if(!strcmp(field,"lname")){   
+        
+        db_init(resultat);     
+        printf("lname : %s",value);
+        db_search(student_db,resultat,value,1);
+
+    } 
+    else if(!strcmp(field,"id")){  
+
+        
+        db_init(resultat);
+        printf("ok\n");
+        printf("id : %s",value);
+        db_search(student_db,resultat,value,2);
+
+    } 
+    else if(!strcmp(field,"section")){ 
+        
+        db_init(resultat);      
+        printf("section : %s",value);
+        db_search(student_db,resultat,value,3);
+
+    } 
+    else if(!strcmp(field,"birthdate")){ 
+        
+        db_init(resultat);       
+        printf("birthdate : %s",value);
+        db_search(student_db,resultat,value,4);
+        
+
+    } 
+    else{error("");ret = false;
+    }
+    return ret;
 }
 
 

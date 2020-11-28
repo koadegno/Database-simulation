@@ -39,7 +39,7 @@ void select_commande(database_t* student_db)
 
         
                 
-        printf("\n- commande : %s\n", input);
+        printf("\n- commande : %s\n\n", input);
         commd_rest = input;
         commd = strtok_r(NULL, " ", &commd_rest);
         
@@ -57,7 +57,7 @@ void select_commande(database_t* student_db)
             }
             
             // choose right field
-            if (!choose_right_field_to_search(field,value,student_db,&resultat)){
+            if (!choose_right_field_to_work(field,value,student_db,&resultat,1)){
                 break;            }
             db_afficher(&resultat);break;
 
@@ -71,6 +71,7 @@ void select_commande(database_t* student_db)
                         
             student_t new_stud; new_stud.id=id;strcpy(new_stud.fname,fname);
             strcpy(new_stud.lname,lname);strcpy(new_stud.section,section); new_stud.birthdate = *annif;
+            printf("ok\n");
             db_add(student_db,&new_stud);
             {char* buff; student_to_str(buff,&new_stud); printf("Etudiant bien ajouter : %s\n",buff);}
             break;
@@ -83,8 +84,29 @@ void select_commande(database_t* student_db)
                 break;
             }
             
-            choose_right_field_to_search(field,value,student_db,&resultat);
+            choose_right_field_to_work(field,value,student_db,&resultat,2);
             db_afficher(&resultat); /* TODO terminate this function */
+            switch (field[0])
+            {
+            case 'f':
+                delete(student_db,value,0);
+                break;
+            case 'l':
+                delete(student_db,value,1);
+                break;
+            case 'i':
+                delete(student_db,value,2);
+                break;
+            case 's':
+                delete(student_db,value,3);
+                break;
+            case 'b':
+                delete(student_db,value,4);
+                break;
+            default:
+                break;
+            }
+            
             break;
 
         case 'u':
@@ -97,7 +119,7 @@ void select_commande(database_t* student_db)
             printf("\nUPDATE GOOD\n\n");
             printf("field_fielter : %s\nvalue_filter : %s\nfield_to_update :%s\nupdate_value : %s\n",field_filter, value_filter,field_to_update,update_value);
             
-            choose_right_field_to_search(field_filter,value_filter,student_db,&resultat);
+            choose_right_field_to_work(field_filter,value_filter,student_db,&resultat,3);
             break;
 
 

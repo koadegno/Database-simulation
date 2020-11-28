@@ -1,5 +1,5 @@
-#ifndef _FIND_H_
-#define _FIND_H_
+#ifndef _ACTION_H_
+#define _ACTION_H_
 
 #include "student.h"
 #include <stdio.h>
@@ -13,6 +13,7 @@
 #define thread_max 4
 
 pthread_mutex_t lock;           /** mutex to managa **/
+pthread_t t1; pthread_t t2; pthread_t t3; pthread_t t4;
 pthread_t thread[thread_max];   /** thread to manage **/
 int current_find_thread = 0;    /**nb of current thread **/
 
@@ -41,12 +42,12 @@ void *find_in_fname(void* val){
     pthread_mutex_unlock(&lock);
 
     size_t max = (param->begin)->lsize;
-    size_t stop = ((num+1) * (max/4));
+    size_t stop = ((num+1) * (max/thread_max));
 
     // if max and nb of thread aren't Greatest common divisor (pgcd)
-    if (thread[3] == pthread_self()){stop+=max-stop;printf("Taille max du dernier thread : %ld avec tid : %ld\n",stop,pthread_self());}
+    if (thread[3] == pthread_self()){stop+=max-stop;}
     
-    for(size_t i = num * ( max/4); i < stop;i++){
+    for(size_t i = num * ( max/thread_max); i < stop;i++){
         //printf("le nom = %s  ",(param->to_search));
         
         if(!strcmp((param->begin->data[i]).fname,param->to_search) ){
@@ -72,11 +73,11 @@ void *find_in_lname(void* val){
     int num = current_find_thread++; // all threads need that global variable 
     pthread_mutex_unlock(&lock);
     size_t max = (param->begin)->lsize;
-    size_t stop = ((num+1) * (max/4));
+    size_t stop = ((num+1) * (max/thread_max));
 
     // if max and nb of thread aren't Greatest common divisor (pgcd)
-    if (thread[3] == pthread_self()){stop+=max-stop;printf("Taille max du dernier thread : %ld avec tid : %ld\n",stop,pthread_self());}
-    for(size_t i = num * (max/4); i < stop;i++){
+    if (thread[3] == pthread_self()){stop+=max-stop;}
+    for(size_t i = num * (max/thread_max); i < stop;i++){
         
         if(!strcmp( (param->begin->data[i]).lname,param->to_search) ){
                 
@@ -84,10 +85,8 @@ void *find_in_lname(void* val){
                 db_add(param->end,&(param->begin->data[i]));
                 pthread_mutex_unlock(&lock);
             }
-        
     }
     
-    return ;
 }
 
 /**
@@ -104,19 +103,19 @@ void *find_in_id(void* val){
     pthread_mutex_unlock(&lock);
 
     size_t max = (param->begin)->lsize;
-    size_t stop = ((num+1) * (max/4));
+    size_t stop = ((num+1) * (max/thread_max));
 
     // if max and nb of thread aren't Greatest common divisor (pgcd)
-    if (thread[3] == pthread_self()){stop+=max-stop;printf("Taille max du dernier thread : %ld avec tid : %ld\n",stop,pthread_self());}
+    if (thread[3] == pthread_self()){stop+=max-stop;}
     
-    for(size_t i = num * (max/4); i < stop;i++){
-
+    for(size_t i = num * (max/thread_max); i < stop;i++){
+        
         if((param->begin->data[i]).id == id ){
+                
                 pthread_mutex_lock(&lock);
                 db_add(param->end,&(param->begin->data[i]));
                 pthread_mutex_unlock(&lock);
             }
-
     }
     return NULL;
 }   
@@ -135,12 +134,12 @@ void *find_in_birth(void* val){
 
     struct tm datee;strptime(param->to_search, "%d/%m/%Y", &datee);
     int max = (param->begin)->lsize;
-    size_t stop = ((num+1) * (max/4));
+    size_t stop = ((num+1) * (max/thread_max));
 
     // if max and nb of thread aren't Greatest common divisor (pgcd)
-    if (thread[3] == pthread_self()){stop+=max-stop;printf("Taille max du dernier thread : %ld avec tid : %ld\n",stop,pthread_self());}
+    if (thread[3] == pthread_self()){stop+=max-stop;}
     
-    for(size_t i = num * (max/4); i < stop;i++)
+    for(size_t i = num * (max/thread_max); i < stop;i++)
     {
 
         if((param->begin->data[i]).birthdate.tm_mday == datee.tm_mday &&
@@ -166,12 +165,12 @@ void *find_in_section(void* val){
 
     int num = current_find_thread++;
     int max = (param->begin)->lsize;
-    size_t stop = ((num+1) * (max/4));
+    size_t stop = ((num+1) * (max/thread_max));
 
     // if max and nb of thread aren't Greatest common divisor (pgcd)
-    if (thread[3] == pthread_self()){stop+=max-stop;printf("Taille max du dernier thread : %ld avec tid : %ld\n",stop,pthread_self());}
+    if (thread[3] == pthread_self()){stop+=max-stop;}
     
-    for(size_t i = num * (max/4); i < stop;i++){
+    for(size_t i = num * (max/thread_max); i < stop;i++){
 
         if(!strcmp((param->begin->data[i]).section,param->to_search) ){
                 pthread_mutex_lock(&lock);
@@ -184,7 +183,10 @@ void *find_in_section(void* val){
 }
 
 
-
+/**
+ * search inside de db depending of the field
+ * using thread (thread_max)
+ */
 void db_search(database_t* start_db, database_t* end_db,char to_search[], int field){
 
     to_search[strlen(to_search) -1] = '\0';
@@ -197,15 +199,16 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
         printf("\n*** ERREUR AVEC LA CREATION DU MUTEX ***\n");
         return;
     }
-        
+    thread[0] =t1; thread[1] =t2;  thread[2] =t3;  thread[3] =t4; 
+    void* array[] = {find_in_fname,find_in_lname,find_in_id,find_in_section};
+    printf("Lancement des 4 Threads\n\n"); 
     switch (field){
     case 0: // field == fname
             
         for (int i = 0; i < thread_max; i++) { 
             if(pthread_create(&thread[i], NULL,find_in_fname, (void*)&to_pass) != 0){
                 printf("\n*** PEUT PAS CREER LE THREAD ***\n");
-            }; 
-        
+            };
         }
 
         for (int i = 0; i < thread_max; i++) { 
@@ -215,9 +218,8 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
         break;
     case 1: // field == lname
 
-        
         for (int i = 0; i < thread_max; i++) {
-                
+                        
             if(pthread_create(&thread[i], NULL,find_in_lname, (void*)&to_pass) != 0){
                 printf("*** PEUT PAS CREER LE THREAD ***\n");
             };  
@@ -285,53 +287,94 @@ void error(char *err)
     printf("\n**Querie Error %s**\nTry again\n", err);
 }
 
-bool choose_right_field_to_search(char* field,char* value,database_t* student_db,database_t* resultat){
+bool choose_right_field_to_work(char* field,char* value,database_t* student_db,database_t* resultat,int work){
 
     // choose right field
-    bool ret = true;
-    if(!strcmp(field,"fname")){
-        
-        db_init(resultat);
-        printf("fname : %s", value);
-        
-        db_search(student_db,resultat,value,0);
+    bool ret = true;db_init(resultat);
 
-    } 
-    else if(!strcmp(field,"lname")){   
-        
-        db_init(resultat);     
-        printf("lname : %s",value);
-        db_search(student_db,resultat,value,1);
+    char job_to_do[5][11] = {"fname","lname","id","section","birthdate"};
 
-    } 
-    else if(!strcmp(field,"id")){  
-
-        
-        db_init(resultat);
-        printf("ok\n");
-        printf("id : %s",value);
-        db_search(student_db,resultat,value,2);
-
-    } 
-    else if(!strcmp(field,"section")){ 
-        
-        db_init(resultat);      
-        printf("section : %s",value);
-        db_search(student_db,resultat,value,3);
-
-    } 
-    else if(!strcmp(field,"birthdate")){ 
-        
-        db_init(resultat);       
-        printf("birthdate : %s",value);
-        db_search(student_db,resultat,value,4);
-        
-
-    } 
-    else{error("");ret = false;
+    for(int i = 0;i <5;i++){
+        if(!strcmp(field,job_to_do[i])){
+            printf("%s : %s\n",job_to_do[i],value);
+            db_search(student_db,resultat,value,i);
+            ret = true;
+            break;
+            //return ret;
+        }
+        else{ret=false;}
     }
+   
     return ret;
 }
 
+
+void delete(database_t *source,char* search_for,int field){
+    size_t max = source->lsize;
+    int reduc = 0;
+
+    for(size_t i = 0; i <max; i++){
+
+        switch (field)
+        {
+        case 0: // fname
+            if(!strcmp((source->data[i]).fname,search_for) ){
+                student_t *tmp = &(source->data[max-1-reduc]);
+                source->data[max-1-reduc] = source->data[i];
+                source->data[i] = *tmp;
+                reduc++;
+
+            }
+            break;
+        case 1: // lname
+            if(!strcmp((source->data[i]).lname,search_for) ){
+                student_t *tmp = &(source->data[max-1-reduc]);
+                source->data[max-1-reduc] = source->data[i];
+                source->data[i] = *tmp;
+                reduc++;
+
+            }
+            break;
+        case 2: // id
+            if((source->data[i]).id == atoi(search_for) ){
+                student_t *tmp = &(source->data[max-1-reduc]);
+                source->data[max-1-reduc] = source->data[i];
+                source->data[i] = *tmp;
+                reduc++;
+
+            }
+            break;
+        case 3: // section
+            if(!strcmp((source->data[i]).section,search_for) ){
+                student_t *tmp = &(source->data[max-1-reduc]);
+                source->data[max-1-reduc] = source->data[i];
+                source->data[i] = *tmp;
+                reduc++;
+
+            }
+            break;
+        case 4: // birth
+            {
+            struct tm datee;strptime(search_for, "%d/%m/%Y", &datee);
+            if( (source->data[i]).birthdate.tm_mday == datee.tm_mday &&
+            (source->data[i]).birthdate.tm_mon == datee.tm_mon && 
+            (source->data[i]).birthdate.tm_year ==datee.tm_year  ){
+                student_t *tmp = &(source->data[max-1-reduc]);
+                source->data[max-1-reduc] = source->data[i];
+                source->data[i] = *tmp;
+                reduc++;
+
+            }
+            break;
+            }
+        default:
+            break;
+        }
+    }
+    printf("Il y a %d qui correspond\n",reduc);
+    source->lsize = source->lsize - reduc;
+
+
+}
 
 #endif

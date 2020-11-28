@@ -105,7 +105,7 @@ void db_afficher(database_t* db) {
         printf("%ld",i);
         student_to_str(buff, &( db->data[i] ));
         printf("%s\n",buff);
-        sleep(2);
+        sleep(1);
     }
     
     

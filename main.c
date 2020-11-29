@@ -39,7 +39,7 @@ void select_commande(database_t* student_db)
 
         
                 
-        printf("\n- commande : %s\n\n", input);
+        printf("\n- commande : %s\n", input);
         commd_rest = input;
         commd = strtok_r(NULL, " ", &commd_rest);
         
@@ -63,7 +63,7 @@ void select_commande(database_t* student_db)
 
         case 'i': //insert someone
             {
-            
+            char buff[256];
             if(!parse_insert(commd_rest,fname,lname,&id,section,annif)){
                 error("insert");
                 break;
@@ -71,9 +71,11 @@ void select_commande(database_t* student_db)
                         
             student_t new_stud; new_stud.id=id;strcpy(new_stud.fname,fname);
             strcpy(new_stud.lname,lname);strcpy(new_stud.section,section); new_stud.birthdate = *annif;
-            printf("ok\n");
+            
             db_add(student_db,&new_stud);
-            {char* buff; student_to_str(buff,&new_stud); printf("Etudiant bien ajouter : %s\n",buff);}
+            printf("ok\n");
+            //student_to_str(buff,&new_stud); 
+            printf("Etudiant bien ajouter : %s\n",buff);
             break;
             }
         case 'd':

@@ -10,6 +10,8 @@
 #include "parsing.h"
 #include "db.h"
 #include <stdbool.h>
+#include <time.h>
+#include <unistd.h>
 #define thread_max 4
 
 pthread_mutex_t lock;           /** mutex to managa **/
@@ -111,7 +113,7 @@ void *find_in_id(void* val){
     for(size_t i = num * (max/thread_max); i < stop;i++){
         
         if((param->begin->data[i]).id == id ){
-                
+                printf("ligne : %ld\n ",i);
                 pthread_mutex_lock(&lock);
                 db_add(param->end,&(param->begin->data[i]));
                 pthread_mutex_unlock(&lock);
@@ -201,7 +203,7 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
     }
     thread[0] =t1; thread[1] =t2;  thread[2] =t3;  thread[3] =t4; 
     void* array[] = {find_in_fname,find_in_lname,find_in_id,find_in_section};
-    printf("Lancement des 4 Threads\n\n"); 
+    printf("***  Lancement des 4 Threads  ***\n\n"); 
     switch (field){
     case 0: // field == fname
             
@@ -212,7 +214,7 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
         }
 
         for (int i = 0; i < thread_max; i++) { 
-            if (!pthread_join(thread[i], NULL)){printf("Le %d a finis : %ld\n",i,thread[i]);}; 
+            pthread_join(thread[i], NULL); 
         } 
 
         break;
@@ -296,7 +298,7 @@ bool choose_right_field_to_work(char* field,char* value,database_t* student_db,d
 
     for(int i = 0;i <5;i++){
         if(!strcmp(field,job_to_do[i])){
-            printf("%s : %s\n",job_to_do[i],value);
+            //printf("%s : %s\n",job_to_do[i],value);
             db_search(student_db,resultat,value,i);
             ret = true;
             break;
@@ -312,43 +314,42 @@ bool choose_right_field_to_work(char* field,char* value,database_t* student_db,d
 void delete(database_t *source,char* search_for,int field){
     size_t max = source->lsize;
     int reduc = 0;
-
-    for(size_t i = 0; i <max; i++){
-
+    int i = (source->lsize)-1;
+    for(i;i >= 0;i--){
+        //printf("ok i=%d  ",i);
+        //sleep(10);
         switch (field)
         {
         case 0: // fname
             if(!strcmp((source->data[i]).fname,search_for) ){
-                student_t *tmp = &(source->data[max-1-reduc]);
+                student_t tmp = (source->data[max-1-reduc]);
                 source->data[max-1-reduc] = source->data[i];
-                source->data[i] = *tmp;
-                reduc++;
-
+                source->data[i] = tmp;reduc++;
             }
             break;
         case 1: // lname
             if(!strcmp((source->data[i]).lname,search_for) ){
-                student_t *tmp = &(source->data[max-1-reduc]);
+                student_t tmp = (source->data[max-1-reduc]);
                 source->data[max-1-reduc] = source->data[i];
-                source->data[i] = *tmp;
-                reduc++;
-
+                source->data[i] = tmp;reduc++;
             }
             break;
         case 2: // id
-            if((source->data[i]).id == atoi(search_for) ){
-                student_t *tmp = &(source->data[max-1-reduc]);
+        {   
+            int stud_id = atoi(search_for);
+            
+            if((source->data[i]).id == stud_id ){      
+                student_t tmp = (source->data[max-1-reduc]);          
                 source->data[max-1-reduc] = source->data[i];
-                source->data[i] = *tmp;
-                reduc++;
-
+                source->data[i] = tmp;reduc++;
             }
+        }
             break;
         case 3: // section
             if(!strcmp((source->data[i]).section,search_for) ){
-                student_t *tmp = &(source->data[max-1-reduc]);
+                student_t tmp = (source->data[max-1-reduc]);
                 source->data[max-1-reduc] = source->data[i];
-                source->data[i] = *tmp;
+                source->data[i] = tmp;
                 reduc++;
 
             }
@@ -357,22 +358,24 @@ void delete(database_t *source,char* search_for,int field){
             {
             struct tm datee;strptime(search_for, "%d/%m/%Y", &datee);
             if( (source->data[i]).birthdate.tm_mday == datee.tm_mday &&
+            // Ajoute des elements a sup a la partir de le fin 
             (source->data[i]).birthdate.tm_mon == datee.tm_mon && 
             (source->data[i]).birthdate.tm_year ==datee.tm_year  ){
-                student_t *tmp = &(source->data[max-1-reduc]);
+                //swap
+                student_t tmp = (source->data[max-1-reduc]);
                 source->data[max-1-reduc] = source->data[i];
-                source->data[i] = *tmp;
+                source->data[i] = tmp;
                 reduc++;
-
+            }
             }
             break;
-            }
         default:
             break;
         }
+    
     }
-    printf("Il y a %d qui correspond\n",reduc);
-    source->lsize = source->lsize - reduc;
+    printf("\nIl y a %d qui correspond\n",reduc);
+    source->lsize = source->lsize-1 - reduc;
 
 
 }

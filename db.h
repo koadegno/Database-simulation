@@ -8,6 +8,8 @@
 #include <stdbool.h>
 #include <stdlib.h> 
 #include <pthread.h>
+#include <time.h>
+#include <unistd.h>
 
 
 
@@ -102,7 +104,7 @@ void db_afficher(database_t* db) {
     char buff[256];
     printf("%zd eléments dans la DB.\n\n", db->lsize);
     for (size_t i = 0; i < db->lsize; i++) {
-        printf("%ld",i);
+        printf("%ld",i+1);
         student_to_str(buff, &( db->data[i] ));
         printf("%s\n",buff);
         sleep(1);

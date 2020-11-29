@@ -23,8 +23,8 @@ typedef struct {
 void student_to_str(char* buffer, student_t* s){
 
     
-    char test[] = "- ID :%d, %s %s en %s né le %d/%d/%u\n";
-    sprintf(buffer,test,s->id,s->fname,s->lname,s->section,s->birthdate.tm_mday,s->birthdate.tm_mon+1,s->birthdate.tm_year+1900);
+    char phrase[] = "- ID :%d, %s %s en %s né le %d/%d/%u\n";
+    sprintf(buffer,phrase,s->id,s->fname,s->lname,s->section,s->birthdate.tm_mday,s->birthdate.tm_mon+1,s->birthdate.tm_year+1900);
     
 }
 

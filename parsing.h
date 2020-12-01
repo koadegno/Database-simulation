@@ -1,9 +1,7 @@
 #ifndef _PARSING_H
 #define _PARSING_H
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE /* Required to work with strptime, which is OS-dependent */
-#endif
+
 
 #include <stdbool.h>
 

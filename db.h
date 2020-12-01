@@ -3,7 +3,7 @@
 
 
 #include "student.h"
-#include "find.h"
+#include "dbAction.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h> 
@@ -78,17 +78,14 @@ void db_delete(database_t *db, student_t *s){
 void db_save(database_t *db, const char *path){
     
     FILE* ptr_file = fopen(path,"wb");
+    char t[256];
 
     if (!ptr_file){ printf("\nERREUR FILE\n"); return;}
 
     student_t var = db->data[db->lsize-1];
-    char t[256];
     student_to_str(t,&var);
-    printf("etudiant : %s\n",t);
 
-    //fwrite(&var,sizeof(student_t),1,ptr_file);
     for(size_t i =0; i < db->lsize; i++){
-        printf("the idx : %ld ",i );
         fwrite(&(db->data[i]),sizeof(db->data[i]),1,ptr_file);
 
      } 

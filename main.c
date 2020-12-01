@@ -5,176 +5,176 @@
 #include <stdlib.h>
 #include "student.h"
 #include <string.h>
-#include "parsing.c"
+#include <signal.h>
+#include <pthread.h>
 
-#include "find.h"
+#include "parsing.h"
+#include "dbAction.h"
 #include "db.h"
 
-#define BUFFERSIZE 100
-#define keepon 0
-#define querie_running 1
 
+char save_file[256] = "database.bin";
+int querie_running = 0;// 1 running and 0 not running
 
+static void stop_signal(int sign){
+    
+    if(querie_running == 0){
+        printf("Fermeture ");
+        exit(0);}
+    printf("\n*** WAIT UNTIL THE AND OF THE QUERY ***\n\n");
+    querie_running = 0;
+    return;
+}
 
 void select_commande(database_t* student_db)
 {
-    char field[64];
-    char value[64];
-    char input[64];
-    char fname[64];
-    char lname[64];
-    char section[64];
+    char field[64], value[64], input[64], fname[64], lname[64], section[64], field_filter[64], value_filter[64], field_to_update[64], update_value[64], *commd_rest, *commd;
     unsigned id;
     struct tm *annif = (struct tm *)malloc(sizeof(struct tm) * 1);
-    char field_filter[64];
-    char value_filter[64];
-    char field_to_update[64];
-    char update_value[64];
-    char *commd_rest;
-    char *commd;
-
-    printf("> ");
-    while (fgets(input, 100, stdin))
-    {
-
         
-                
-        printf("\n- commande : %s\n", input);
-        commd_rest = input;
-        commd = strtok_r(NULL, " ", &commd_rest);
-        
-        switch (commd[0])
-        {
-        database_t resultat;
-        case 's':
+    printf("Entrer une commande :\n>> ");
+    
+    while (fgets(input, 64, stdin)){
             
-            // if command not good
+            querie_running = 1;
+            printf("\n- commande : %s\n", input);
+            commd_rest = input;
+            commd = strtok_r(NULL, " ", &commd_rest);
             
-            if (!parse_selectors(commd_rest, field, value))
-            {
-                error("select");
-                break;
-            }
-            
-            // choose right field
-            if (!choose_right_field_to_work(field,value,student_db,&resultat,1)){
-                break;            }
-            db_afficher(&resultat);break;
+            // stop action ?
+            /*if(querie_running==0){
+            db_save(student_db,save_file);
+            printf("\n**Sauvegarde de la Base de données **\n\n");
+            exit(0);}*/
 
-        case 'i': //insert someone
+            switch (commd[0])
             {
-            char buff[256];
-            if(!parse_insert(commd_rest,fname,lname,&id,section,annif)){
-                error("insert");
-                break;
-            }
-                        
-            student_t new_stud; new_stud.id=id;strcpy(new_stud.fname,fname);
-            strcpy(new_stud.lname,lname);strcpy(new_stud.section,section); new_stud.birthdate = *annif;
+            database_t resultat;
             
-            db_add(student_db,&new_stud);
-            printf("ok\n");
-            //student_to_str(buff,&new_stud); 
-            printf("Etudiant bien ajouter : %s\n",buff);
-            break;
-            }
-        case 'd':
-            
-            if (!parse_selectors(commd_rest, field, value))
-            {
-                error("Delete");
-                break;
-            }
-            
-            choose_right_field_to_work(field,value,student_db,&resultat,2);
-            db_afficher(&resultat); /* TODO terminate this function */
-            switch (field[0])
-            {
-            case 'f':
-                delete(student_db,value,0);
-                break;
-            case 'l':
-                delete(student_db,value,1);
-                break;
-            case 'i':
-                delete(student_db,value,2);
-                break;
             case 's':
-                delete(student_db,value,3);
+                
+                // if command not good
+                
+                if (!parse_selectors(commd_rest, field, value))
+                {
+                    error();
+                    break;
+                }
+                
+                // choose right field
+                if (!choose_right_field_to_work(field,value,student_db,&resultat)){
+                    break;}
+                db_afficher(&resultat);break;
+
+            case 'i': //insert someone
+                {
+                char buff[256];
+                if(!parse_insert(commd_rest,fname,lname,&id,section,annif)){
+                    error();
+                    break;
+                }
+                // create new student            
+                student_t new_stud; new_stud.id=id;strcpy(new_stud.fname,fname);
+                strcpy(new_stud.lname,lname);strcpy(new_stud.section,section); new_stud.birthdate = *annif;
+                db_add(student_db,&new_stud);
+
+                student_to_str(buff,&new_stud); 
+                printf("Ajout : %s\n",buff);
                 break;
-            case 'b':
-                delete(student_db,value,4);
+                }
+            case 'd':
+                
+                if (!parse_selectors(commd_rest, field, value))
+                {
+                    error();
+                    break;
+                }
+            
+                switch (field[0])
+                {
+                case 'f':
+                    delete(student_db,value,0);
+                    break;
+                case 'l':
+                    delete(student_db,value,1);
+                    break;
+                case 'i':
+                    delete(student_db,value,2);
+                    break;
+                case 's':
+                    delete(student_db,value,3);
+                    break;
+                case 'b':
+                    delete(student_db,value,4);
+                    break;
+                default:
+                    break;
+                }
+                
+                break;
+
+            case 'u':
+
+                if(!parse_update(commd_rest,field_filter,value_filter,field_to_update,update_value)){
+                    error();
+                    break;
+                }
+                update_db(student_db,field_to_update,update_value,value_filter);
                 break;
             default:
+                printf("\nQuery not correct \n");
                 break;
-            }
-            
-            break;
+                
 
-        case 'u':
-
-            
-            if(!parse_update(commd_rest,field_filter,value_filter,field_to_update,update_value)){
-                error("update.");
-                break;
-            }
-            printf("\nUPDATE GOOD\n\n");
-            printf("field_fielter : %s\nvalue_filter : %s\nfield_to_update :%s\nupdate_value : %s\n",field_filter, value_filter,field_to_update,update_value);
-            
-            choose_right_field_to_work(field_filter,value_filter,student_db,&resultat,3);
-            break;
-
-
-        default:
-            printf("\nQuery not correct \n");
-            break;
-            
-
-        };
-    printf("> ");
-    } //end of while
+            };
+        printf("---------------------------------------------------\n\n");
+        printf("Entrer une commande : \n>> ");
+    
+        if(querie_running==0){
+            db_save(student_db,save_file);
+            printf("\n**Sauvegarde de la Base de données **\n\n");
+            exit(0);}
+    }
 }
 
 int main(int argc, char const *argv[])
 {
+    // handeling CTRL + C and CTRL + D signal
+    struct sigaction stop_procc;
+    stop_procc.sa_handler = stop_signal;
+    stop_procc.sa_flags = SA_RESTART;
 
+    sigaction(SIGINT,&stop_procc,NULL); //  CTRL + C
+    sigaction(SIGQUIT,&stop_procc,NULL); //  CTRL + D
+
+    
     const char *student_file;
 
     if (argc > 2)
     {
-        printf("Trop de fichier !\n");
+        printf("Trop de parametre !\n");
         return 1;
     }; // no file
 
     if (argc == 2)
     {
         student_file = argv[1];
-        printf("file : %s \n", student_file);
         database_t db_student;
-        db_init(&db_student);printf("\n*** INITIALISATION DE LA BASE DE DONNEES ***\n");
+        db_init(&db_student);printf("\n\n*** INITIALISATION DE LA BASE DE DONNEES ***\n\n");
         db_load(&db_student, student_file);
-        //db_afficher(&db_student);
-        printf("---------------------------------------------------\n\n");
-
+        
+        strcmp(save_file,student_file);
         select_commande(&db_student);
-        printf("*** FINISH ***\n");
+                
     }
     else
     {
-        printf("Pas de fichier \n");
         database_t db_student;
         db_init(&db_student);printf("\n*** INITIALISATION DE LA BASE DE DONNEES ***\n");
         
         select_commande(&db_student);
-        
-
-        printf("\n\n*** FINISH ***\n");
     }
 
-    /*  read file with "<" redirection symbol
-    char buffer[BUFFERSIZE];
-    fgets(buffer, BUFFERSIZE , stdin);
-    printf("Read: %s", buffer);*/
-
+    
     return 0;
 }

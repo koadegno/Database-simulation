@@ -13,13 +13,15 @@
 #include "db.h"
 
 
-char save_file[256] = "database.bin";
+const char save_file[256] = "database.bin";
+database_t* DATABASE;
 int querie_running = 0;// 1 running and 0 not running
 
 static void stop_signal(int sign){
     
-    if(querie_running == 0){
+    if(querie_running == 2){
         printf("Fermeture ");
+        db_save(DATABASE,save_file);
         exit(0);}
     printf("\n*** WAIT UNTIL THE AND OF THE QUERY ***\n\n");
     querie_running = 0;
@@ -35,7 +37,7 @@ void select_commande(database_t* student_db)
     printf("Entrer une commande :\n>> ");
     
     while (fgets(input, 64, stdin)){
-            
+            database_t resultat;
             querie_running = 1;
             printf("\n- commande : %s\n", input);
             commd_rest = input;
@@ -46,10 +48,10 @@ void select_commande(database_t* student_db)
             db_save(student_db,save_file);
             printf("\n**Sauvegarde de la Base de données **\n\n");
             exit(0);}*/
-
+            
             switch (commd[0])
             {
-            database_t resultat;
+            
             
             case 's':
                 
@@ -62,8 +64,10 @@ void select_commande(database_t* student_db)
                 }
                 
                 // choose right field
+                
                 if (!choose_right_field_to_work(field,value,student_db,&resultat)){
                     break;}
+                    
                 db_afficher(&resultat);break;
 
             case 'i': //insert someone
@@ -105,6 +109,7 @@ void select_commande(database_t* student_db)
                     delete(student_db,value,3);
                     break;
                 case 'b':
+                    
                     delete(student_db,value,4);
                     break;
                 default:
@@ -132,10 +137,13 @@ void select_commande(database_t* student_db)
     
         if(querie_running==0){
             db_save(student_db,save_file);
-            printf("\n**Sauvegarde de la Base de données **\n\n");
+            //printf("\n**Sauvegarde de la Base de données **\n\n");
             exit(0);}
+        querie_running = 2;
     }
 }
+
+
 
 int main(int argc, char const *argv[])
 {
@@ -162,7 +170,7 @@ int main(int argc, char const *argv[])
         database_t db_student;
         db_init(&db_student);printf("\n\n*** INITIALISATION DE LA BASE DE DONNEES ***\n\n");
         db_load(&db_student, student_file);
-        
+        DATABASE = &db_student;
         strcmp(save_file,student_file);
         select_commande(&db_student);
                 
@@ -171,10 +179,11 @@ int main(int argc, char const *argv[])
     {
         database_t db_student;
         db_init(&db_student);printf("\n*** INITIALISATION DE LA BASE DE DONNEES ***\n");
-        
+        DATABASE = &db_student;
         select_commande(&db_student);
     }
-
+    db_save(DATABASE,save_file);
+    printf("TERMINAISON ...\n");
     
     return 0;
 }

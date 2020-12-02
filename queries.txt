@@ -1,1 +1,20 @@
-select fname=Yannick
+select lname=Adegnon
+insert lucas Adegnon 22 info 3/4/2009
+insert samuel Adegnon 24 info 3/4/2009
+insert mayron Adegnon 40 info 3/4/2009
+insert gabrie Adegnon 60 info 3/4/2009
+insert julian Adegnon 870 info 3/4/2009
+insert victor Adegnon 224 info 3/4/2009
+insert maël Adegnon 509 info 3/4/2009
+insert tom Adegnon 202 info 3/4/2009
+select lname=Adegnon
+delete birthdate=3/4/2009
+select birthdate=3/4/2009
+insert lucas Adegnon 22 info 3/4/2009
+insert samuel Adegnon 24 info 3/4/2009
+insert mayron Adegnon 40 info 3/4/2009
+insert gabrie Adegnon 60 info 3/4/2009
+insert julian Adegnon 870 info 3/4/2009
+insert victor Adegnon 224 info 3/4/2009
+insert maël Adegnon 509 info 3/4/2009
+insert tom Adegnon 202 info 3/4/2009

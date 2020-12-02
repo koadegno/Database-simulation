@@ -193,11 +193,7 @@ void *find_in_section(void* val){
 void db_search(database_t* start_db, database_t* end_db,char to_search[], int field){
 
     //printf("1 My va   lue : %s\n",to_search);
-    if (to_search[strlen(to_search)-1] == '\n'){
-        to_search[strlen(to_search) -1] = '\0';
-    
-    }
-    
+        
     find_param to_pass; // struct just for thread param
     to_pass.begin = start_db; to_pass.end = end_db;
     strcpy(to_pass.to_search,to_search);
@@ -292,6 +288,61 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
 }
 
 /**
+ * Execute select query for database 999999 elements
+ * 
+ */
+void query_select_normal(database_t *source,database_t* dest,char* field, char* value){
+
+    
+    for(size_t j =0; j< source->lsize; j++){
+        student_t *tmp = &(source->data[j]);
+        switch (field[0])
+        {
+        case 'f': //fname
+            
+            if (!strcmp((source->data[j]).fname,value)){
+                db_add(dest,tmp);
+            }
+            break;
+        case 'l': //lname
+           
+            if (!strcmp((source->data[j]).lname,value)){
+                db_add(dest,tmp);
+            }
+            break;
+        case 'i': //id
+            {
+            int id = atoi(value);
+            if ((source->data[j]).id == id){
+                
+                db_add(dest,tmp);
+            }
+            }
+            break;
+        case 's': //section
+            if (!strcmp((source->data[j]).section,value)){
+                db_add(dest,tmp);
+            }
+            break;
+        case 'b': //birthdate
+        {
+            
+            struct tm date;strptime(value, "%d/%m/%Y", &date);
+            if((source->data[j]).birthdate.tm_mday == date.tm_mday &&
+            (source->data[j]).birthdate.tm_mon == date.tm_mon && 
+            (source->data[j]).birthdate.tm_year ==date.tm_year ){
+            db_add(dest,&(source->data[j]));}
+            break;
+        }
+        default:
+            break;
+        }   
+    }
+
+
+}
+
+/**
  * Show error 
  */
 void error()
@@ -305,20 +356,30 @@ void error()
  */
 bool choose_right_field_to_work(char* field,char* value,database_t* student_db,database_t* resultat){
 
+    if (value[strlen(value)-1] == '\n'){
+        value[strlen(value) -1] = '\0';
+    
+    }
     // choose right field
     bool ret = true;db_init(resultat);
 
     char job_to_do[5][11] = {"fname","lname","id","section","birthdate"};
-
-    for(int i = 0;i <5;i++){
-        if(!strcmp(field,job_to_do[i])){
-           // printf("%s : %s\n",job_to_do[i],value);
-            db_search(student_db,resultat,value,i);
-            ret = true;
-            break;
-            //return ret;
+    //printf("taille mtn = %ld",student_db->lsize);
+    if (student_db->lsize > 999999){
+        for(int i = 0;i <5;i++){
+            //printf("OK\n");
+            if(!strcmp(field,job_to_do[i])){
+                // printf("%s : %s\n",job_to_do[i],value);
+                
+                db_search(student_db,resultat,value,i);
+                ret = true;
+                break;
+                //return ret;
+            }
+            else{ret=false;}
         }
-        else{ret=false;}
+    }else{
+        query_select_normal(student_db,resultat,field,value);
     }
    
     return ret;
@@ -373,6 +434,7 @@ void delete(database_t *source,char* search_for,int field){
             break;
         case 4: // birth
             {
+            
             struct tm datee;strptime(search_for, "%d/%m/%Y", &datee);
             if( (source->data[i]).birthdate.tm_mday == datee.tm_mday &&
             // Ajoute des elements a sup a la partir de le fin 
@@ -392,7 +454,7 @@ void delete(database_t *source,char* search_for,int field){
     
     }
     printf("\nIl y a %d qui correspond\n",reduc);
-    source->lsize = source->lsize-1 - reduc;
+    source->lsize = source->lsize - reduc;
 
 
 }

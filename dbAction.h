@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <unistd.h>
+#include "writelog.h"
 #define thread_max 4
 
 pthread_mutex_t lock;           /** mutex to managa **/
@@ -88,7 +89,7 @@ void *find_in_lname(void* val){
                 pthread_mutex_unlock(&lock);
             }
     }
-    
+    return NULL;
 }
 
 /**
@@ -113,8 +114,6 @@ void *find_in_id(void* val){
     for(size_t i = num * (max/thread_max); i < stop;i++){
         
         if((param->begin->data[i]).id == id ){
-                char buff[256],buff2[256];
-
                 pthread_mutex_lock(&lock);
                 db_add(param->end,&(param->begin->data[i]));
                 pthread_mutex_unlock(&lock);
@@ -354,7 +353,9 @@ void error()
  * Choose the right field to lauch the search
  * 
  */
-bool choose_right_field_to_work(char* field,char* value,database_t* student_db,database_t* resultat){
+bool choose_right_field_to_work(char* field,char* value,database_t* student_db,database_t* resultat,LogPath* log){
+    clock_t start, end;
+    double cpu_time_used;
 
     if (value[strlen(value)-1] == '\n'){
         value[strlen(value) -1] = '\0';
@@ -364,22 +365,31 @@ bool choose_right_field_to_work(char* field,char* value,database_t* student_db,d
     bool ret = true;db_init(resultat);
 
     char job_to_do[5][11] = {"fname","lname","id","section","birthdate"};
-    //printf("taille mtn = %ld",student_db->lsize);
-    if (student_db->lsize > 999999){
+    
+    if (student_db->lsize >= 999999){
         for(int i = 0;i <5;i++){
-            //printf("OK\n");
+            
             if(!strcmp(field,job_to_do[i])){
-                // printf("%s : %s\n",job_to_do[i],value);
                 
+                start = clock();
                 db_search(student_db,resultat,value,i);
+                end = clock();
+                cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+                WriteLog(log,resultat,cpu_time_used);
                 ret = true;
                 break;
-                //return ret;
+                
             }
-            else{ret=false;}
+            else{
+                ret=false;
+            }
         }
     }else{
+        start = clock();
         query_select_normal(student_db,resultat,field,value);
+        end = clock();
+        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+        WriteLog(log,resultat,cpu_time_used);
     }
    
     return ret;
@@ -389,24 +399,36 @@ bool choose_right_field_to_work(char* field,char* value,database_t* student_db,d
  * delete in termes of which field is select and the string search_for
  *  
  */
-void delete(database_t *source,char* search_for,int field){
+void delete(database_t *source,char* search_for,int field,LogPath* log,database_t *res){
     size_t max = source->lsize;
     int reduc = 0;
     int i = (source->lsize)-1;
-    for(i;i >= 0;i--){
+    clock_t start, end;
+    double cpu_time_used;
+    if (search_for[strlen(search_for)-1] == '\n'){
+        search_for[strlen(search_for) -1] = '\0';
+    }
+    
+    start = clock();
+
+    // loop for swap with the last one
+    for(;i >= 0;i--){
         //printf("ok i=%d  ",i);
         //sleep(10);
         switch (field)
         {
         case 0: // fname
             if(!strcmp((source->data[i]).fname,search_for) ){
-                student_t tmp = (source->data[max-1-reduc]);
+                db_add(res,&(source->data[i]));
+                student_t tmp = (source->data[max-1-reduc]); // last
                 source->data[max-1-reduc] = source->data[i];
                 source->data[i] = tmp;reduc++;
+
             }
             break;
         case 1: // lname
             if(!strcmp((source->data[i]).lname,search_for) ){
+                db_add(res,&(source->data[i]));
                 student_t tmp = (source->data[max-1-reduc]);
                 source->data[max-1-reduc] = source->data[i];
                 source->data[i] = tmp;reduc++;
@@ -416,7 +438,8 @@ void delete(database_t *source,char* search_for,int field){
         {   
             int stud_id = atoi(search_for);
             
-            if((source->data[i]).id == stud_id ){      
+            if((source->data[i]).id == stud_id ){    
+                db_add(res,&(source->data[i]));  
                 student_t tmp = (source->data[max-1-reduc]);          
                 source->data[max-1-reduc] = source->data[i];
                 source->data[i] = tmp;reduc++;
@@ -425,6 +448,7 @@ void delete(database_t *source,char* search_for,int field){
             break;
         case 3: // section
             if(!strcmp((source->data[i]).section,search_for) ){
+                db_add(res,&(source->data[i]));
                 student_t tmp = (source->data[max-1-reduc]);
                 source->data[max-1-reduc] = source->data[i];
                 source->data[i] = tmp;
@@ -441,6 +465,7 @@ void delete(database_t *source,char* search_for,int field){
             (source->data[i]).birthdate.tm_mon == datee.tm_mon && 
             (source->data[i]).birthdate.tm_year ==datee.tm_year  ){
                 //swap
+                db_add(res,&(source->data[i]));
                 student_t tmp = (source->data[max-1-reduc]);
                 source->data[max-1-reduc] = source->data[i];
                 source->data[i] = tmp;
@@ -453,6 +478,10 @@ void delete(database_t *source,char* search_for,int field){
         }
     
     }
+    
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    WriteLog(log,res,cpu_time_used);
     printf("\nIl y a %d qui correspond\n",reduc);
     source->lsize = source->lsize - reduc;
 
@@ -460,53 +489,106 @@ void delete(database_t *source,char* search_for,int field){
 }
 
 
+void do_modification(database_t *source,size_t index,char* field_to_mod,char* value){
 
-void update_db(database_t *source, char* field_to_up, char* value,char* last_value){
 
+    if (value[strlen(value)-1] == '\n'){
+        value[strlen(value) -1] = '\0';
     
+    }
+    switch (field_to_mod[0])
+        {
+        case 'f': //fname
+            
+            
+            strcpy((source->data[index]).fname,value);
+            
+            break;
+        case 'l': //lname
+            
+            strcpy((source->data[index]).lname,value);
+            
+            break;
+        case 'i': //id
+            {
+            int id = atoi(value);
+            (source->data[index]).id = id;
+            
+            }
+            break;
+        case 's': //section
+            
+            strcpy((source->data[index]).section,value);
+            
+            break;
+        case 'b': //birthdate
+        {
+            struct tm datee;strptime(value, "%d/%m/%Y", &datee);
+            (source->data[index]).birthdate = datee;
+            break;
+        }
+        default:
+            break;
+        }
+}
+
+
+void update_db(database_t *source,char *field_fielter, char* field_to_up, char* value,char* last_value,LogPath* log, database_t* res){
+    clock_t start, end;
+    double cpu_time_used;
+    
+    start =clock();
     for(size_t j =0; j< source->lsize; j++){
-        switch (field_to_up[0])
+        switch (field_fielter[0])
         {
         case 'f': //fname
             if (!strcmp((source->data[j]).fname,last_value)){
-                strcpy((source->data[j]).fname,value);
+                do_modification(source,j,field_to_up,value);
+                db_add(res,&(source->data[j]));
             }
             break;
         case 'l': //lname
             if (!strcmp((source->data[j]).lname,last_value)){
-                strcpy((source->data[j]).lname,value);
+                do_modification(source,j,field_to_up,value);
+                db_add(res,&(source->data[j]));
             }
             break;
         case 'i': //id
             {
-            int id = atoi(value), last_id = atoi(last_value);
+            int last_id = atoi(last_value);
             if ((source->data[j]).id == last_id){
                 
-                (source->data[j]).id = id;
+                do_modification(source,j,field_to_up,value);
+                db_add(res,&(source->data[j]));
             }
             }
             break;
         case 's': //section
             if (!strcmp((source->data[j]).section,last_value)){
-                strcpy((source->data[j]).section,value);
+                do_modification(source,j,field_to_up,value);
+                db_add(res,&(source->data[j]));
             }
             break;
         case 'b': //birthdate
         {
-            struct tm datee;strptime(value, "%d/%m/%Y", &datee);
+            
             struct tm last_datee;strptime(last_value, "%d/%m/%Y", &last_datee);
             if((source->data[j]).birthdate.tm_mday == last_datee.tm_mday &&
             (source->data[j]).birthdate.tm_mon == last_datee.tm_mon && 
             (source->data[j]).birthdate.tm_year ==last_datee.tm_year ){
-            (source->data[j]).birthdate = datee;}
+            do_modification(source,j,field_to_up,value);
+            db_add(res,&(source->data[j]));
+            }
             break;
         }
         default:
             break;
-        }   
+        }
     }
 
-
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    WriteLog(log,res,cpu_time_used);
 }
 
 #endif

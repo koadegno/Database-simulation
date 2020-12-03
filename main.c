@@ -3,19 +3,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "student.h"
 #include <string.h>
 #include <signal.h>
 #include <pthread.h>
 
+#include "student.h"
 #include "parsing.h"
 #include "dbAction.h"
 #include "db.h"
+#include "writelog.h"
 
 
-const char save_file[256] = "database.bin";
+char save_file[256] = "database.bin";
 database_t* DATABASE;
-int querie_running = 0;// 1 running and 0 not running
+int querie_running = 2;// 1 running and 0 not running
 
 static void stop_signal(int sign){
     
@@ -35,24 +36,23 @@ void select_commande(database_t* student_db)
     struct tm *annif = (struct tm *)malloc(sizeof(struct tm) * 1);
         
     printf("Entrer une commande :\n>> ");
-    
+    //db_afficher(student_db);
     while (fgets(input, 64, stdin)){
             database_t resultat;
+            db_init(&resultat);
+            LogPath log;
+            
+            char cpy_input[64]; strcpy(cpy_input,input);
+            if (cpy_input[strlen(cpy_input)-1] == '\n'){
+                cpy_input[strlen(cpy_input) -1] = '\0';}
+
             querie_running = 1;
             printf("\n- commande : %s\n", input);
             commd_rest = input;
             commd = strtok_r(NULL, " ", &commd_rest);
             
-            // stop action ?
-            /*if(querie_running==0){
-            db_save(student_db,save_file);
-            printf("\n**Sauvegarde de la Base de données **\n\n");
-            exit(0);}*/
-            
             switch (commd[0])
             {
-            
-            
             case 's':
                 
                 // if command not good
@@ -63,16 +63,17 @@ void select_commande(database_t* student_db)
                     break;
                 }
                 
-                // choose right field
-                
-                if (!choose_right_field_to_work(field,value,student_db,&resultat)){
+                // choose right field and init log
+                InitLogPath(&log,cpy_input,0);
+                if (!choose_right_field_to_work(field,value,student_db,&resultat,&log)){
                     break;}
-                    
-                db_afficher(&resultat);break;
+                //db_afficher(&resultat);   
+                printf("Log ecrit : %s\n",log.file_path);break;
 
             case 'i': //insert someone
                 {
-                char buff[256];
+                clock_t start, end;
+                double cpu_time_used;
                 if(!parse_insert(commd_rest,fname,lname,&id,section,annif)){
                     error();
                     break;
@@ -80,10 +81,17 @@ void select_commande(database_t* student_db)
                 // create new student            
                 student_t new_stud; new_stud.id=id;strcpy(new_stud.fname,fname);
                 strcpy(new_stud.lname,lname);strcpy(new_stud.section,section); new_stud.birthdate = *annif;
-                db_add(student_db,&new_stud);
+                InitLogPath(&log,cpy_input,1);
 
-                student_to_str(buff,&new_stud); 
-                printf("Ajout : %s\n",buff);
+                //get the time and execute the action
+                start = clock();
+                db_add(student_db,&new_stud);
+                end = clock();
+                cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+                db_add(&resultat,&new_stud);
+                
+                WriteLog(&log,&resultat,cpu_time_used);
+                printf("Log ecrit : %s\n",log.file_path);
                 break;
                 }
             case 'd':
@@ -93,24 +101,23 @@ void select_commande(database_t* student_db)
                     error();
                     break;
                 }
-            
+                InitLogPath(&log,cpy_input,2);
                 switch (field[0])
                 {
                 case 'f':
-                    delete(student_db,value,0);
+                    delete(student_db,value,0,&log,&resultat);
                     break;
                 case 'l':
-                    delete(student_db,value,1);
+                    delete(student_db,value,1,&log,&resultat);
                     break;
                 case 'i':
-                    delete(student_db,value,2);
+                    delete(student_db,value,2,&log,&resultat);
                     break;
                 case 's':
-                    delete(student_db,value,3);
+                    delete(student_db,value,3,&log,&resultat);
                     break;
                 case 'b':
-                    
-                    delete(student_db,value,4);
+                    delete(student_db,value,4,&log,&resultat);
                     break;
                 default:
                     break;
@@ -124,7 +131,8 @@ void select_commande(database_t* student_db)
                     error();
                     break;
                 }
-                update_db(student_db,field_to_update,update_value,value_filter);
+                InitLogPath(&log,cpy_input,3);
+                update_db(student_db,field_filter,field_to_update,update_value,value_filter,&log,&resultat);
                 break;
             default:
                 printf("\nQuery not correct \n");
@@ -171,7 +179,7 @@ int main(int argc, char const *argv[])
         db_init(&db_student);printf("\n\n*** INITIALISATION DE LA BASE DE DONNEES ***\n\n");
         db_load(&db_student, student_file);
         DATABASE = &db_student;
-        strcmp(save_file,student_file);
+        strcpy(save_file,student_file);
         select_commande(&db_student);
                 
     }

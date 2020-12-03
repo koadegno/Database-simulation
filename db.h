@@ -104,7 +104,7 @@ void db_afficher(database_t* db) {
         printf("%ld",i+1);
         student_to_str(buff, &( db->data[i] ));
         printf("%s\n",buff);
-        sleep(1);
+        //sleep(1);
     }
     
     
@@ -159,27 +159,8 @@ void db_init(database_t *db){
     if (!db->data) {
         perror("Erreur lors de l'allocation de la memoire!\n");
         exit(1);
-    }
-
-    
+    }   
 }
-
-
-/*
-num * (max / 4);  //begin ; num == nb of current thread
-i < ((num + 1) * (max / 4)) // end ; max == nb of elem in the list
-*/
-
-
-
-
-
-/**
- * Function to search into the db
- * field is a number for representing each field 
- * 
- **/
-
 
 
 #endif

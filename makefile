@@ -1,8 +1,8 @@
 FLAGS=-pthread -std=c11 -Wall -Werror -Wpedantic
 
 
-main: main.c db.h student.h parsing.h
-	gcc -o tinydb main.c parsing.o student.o ${FLAGS}
+main: main.c db.h student.h parsing.h dbAction.h writelog.h
+	gcc -o tinydb main.c parsing.o  ${FLAGS}
 
 run:
 	make main && ./main

@@ -11,6 +11,15 @@ FAILURE = 0
 TEST_DB = "tests/data/test_db.bin"
 
 
+def check_log_content(logs, expected_lines):
+    res = True
+    for line in expected_lines:
+        if line not in logs:
+            print('"%s" should be in the results but is not!')
+            res = False
+    return res
+
+
 def copy_db():
     """
     Copy the database so that there is no risk of corrupting its data.
@@ -52,7 +61,7 @@ def compute_nb_students(db_file):
 
 def run_test(test_name, db_filename):
     command = "./tinydb " + db_filename + " < tests/queries/" + \
-        test_name + ".txt > logs/test_" + test_name + ".output"
+        test_name + ".txt > tests/test_" + test_name + ".output"
     print("Running test " + test_name + ": \"" + command + "\"")
     if os.system(command) != 0:
         print("The command '" + command + "' has issued an error!")
@@ -72,7 +81,7 @@ def test_update_multiple():
             print("This test expects 3 lines in the log file. Found",
                   len(log_content), "lines")
             res = FAILURE
-        if log_content[-2] != '111111: Pharmacien Durandal in section pharma, born on the 12/12/1994\n' or log_content[-1] != '472905: Pharmacien Vancauwelaert in section pharma, born on the 8/8/1998\n':
+        if not check_log_content(log_content, ['111111: Pharmacien Durandal in section pharma, born on the 12/12/1994\n', '472905: Pharmacien Vancauwelaert in section pharma, born on the 8/8/1998\n']):
             print("The content of the log file is not the expected one!")
             res = FAILURE
     os.remove(db_filename)
@@ -87,7 +96,7 @@ def test_update():
             print("The number of students has been changed when performing an update!")
             res = FAILURE
         log_content = get_logs("update")
-        if log_content[-1] != "864030: Trucmuche Legast in section info, born on the 30/9/1998\n":
+        if not check_log_content(log_content, ["864030: Trucmuche Legast in section info, born on the 30/9/1998\n"]):
             print("The content of the log file is not what was expected!")
             res = FAILURE
     os.remove(db_filename)
@@ -112,7 +121,7 @@ def test_delete_multiple():
     res = run_test("delete_multiple", db_filename)
     if res != FAILURE:
         log_content = get_logs("delete")
-        if log_content[-1] != "985432: Gaspard Francois in section chemistry, born on the 4/4/1995\n" or log_content[-2] != "234556: Corentin Francois in section physics, born on the 12/12/1994\n":
+        if not check_log_content(log_content, ["985432: Gaspard Francois in section chemistry, born on the 4/4/1995\n", "234556: Corentin Francois in section physics, born on the 12/12/1994\n"]):
             print("The log file does not contain the expected data")
             res = FAILURE
         nb_students = compute_nb_students(db_filename)
@@ -132,7 +141,7 @@ def test_select_single():
         if len(this_log_content) != 2:
             print("The test failed either because the first line does not contain a summary of the query or because no result have been found (expected 1 result)")
             res = FAILURE
-        if this_log_content[-1] != "864030: Hadrien Legast in section info, born on the 30/9/1998\n":
+        if not check_log_content(this_log_content, ["864030: Hadrien Legast in section info, born on the 30/9/1998\n"]):
             print(
                 "The test failed because the log file does not contain the expected result")
             res = FAILURE
@@ -147,7 +156,7 @@ def test_select_multiple():
         if len(this_log_content) != 3:
             print("The test failed either because the first line does not contain a summary of the query or because no result have been found (expected 2 result)")
             res = FAILURE
-        if len(this_log_content) >= 3 and this_log_content[-2] != "111111: Bastien Durandal in section pharma, born on the 12/12/1994\n" or this_log_content[-1] != "234556: Corentin Francois in section physics, born on the 12/12/1994\n":
+        if not check_log_content(this_log_content, ["111111: Bastien Durandal in section pharma, born on the 12/12/1994\n", "234556: Corentin Francois in section physics, born on the 12/12/1994\n"]):
             print("The content of the file does not match the expected one.")
             res = FAILURE
     return res

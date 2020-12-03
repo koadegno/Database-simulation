@@ -1,0 +1,26 @@
+
+
+*** INITIALISATION DE LA BASE DE DONNEES ***
+
+Entrer une commande :
+>> 9 eléments dans la DB.
+
+1289403: Quentin Marchandise in section maths, born on the 28/4/2000
+2864030: Hadrien Legast in section info, born on the 30/9/1998
+3111111: Bastien Durandal in section pharma, born on the 12/12/1994
+4234556: Corentin Francois in section physics, born on the 12/12/1994
+5878787: Emeline Lecomte in section chemistry, born on the 15/4/1993
+6472905: Diane Vancauwelaert in section pharma, born on the 8/8/1998
+7928453: Fabienne Deschamps in section info, born on the 6/7/1997
+88492742: Anatole Lanegris in section info, born on the 7/5/1999
+9985432: Gaspard Francois in section chemistry, born on the 4/4/1995
+
+- commande : insert Quentin Marchandise 5 maths 28/04/2000
+
+Log ecrit : logs/1606994788092782080-insert.txt
+---------------------------------------------------
+
+Entrer une commande : 
+>> 
+SAVE RUNNING
+TERMINAISON ...

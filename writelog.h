@@ -51,11 +51,10 @@ void WriteLog(LogPath* file_struct,database_t* res,double mytime){
     char buff[128];
     FILE *ptr_file;
     ptr_file = fopen(file_struct->file_path,"w");
-    fprintf(ptr_file,"Query \"%s\" completed in %f with %ld: ",file_struct->query,mytime,res->lsize);
+    fprintf(ptr_file,"Query \"%s\" completed in %fms with %ld: \n",file_struct->query,mytime,res->lsize);
 
     for(size_t i = 0; i < res->lsize; i++){
         student_to_str(buff,&(res->data[i]));
-        printf("%s\n",buff);
         fprintf(ptr_file,"%s\n",buff);
         
 

@@ -36,7 +36,7 @@ void select_commande(database_t* student_db)
     struct tm *annif = (struct tm *)malloc(sizeof(struct tm) * 1);
         
     printf("Entrer une commande :\n>> ");
-    //db_afficher(student_db);
+    db_afficher(student_db);
     while (fgets(input, 64, stdin)){
             database_t resultat;
             db_init(&resultat);
@@ -123,7 +123,7 @@ void select_commande(database_t* student_db)
                     break;
                 }
                 
-                break;
+                printf("Log ecrit : %s\n",log.file_path);break;
 
             case 'u':
 
@@ -133,7 +133,7 @@ void select_commande(database_t* student_db)
                 }
                 InitLogPath(&log,cpy_input,3);
                 update_db(student_db,field_filter,field_to_update,update_value,value_filter,&log,&resultat);
-                break;
+                printf("Log ecrit : %s\n",log.file_path);break;
             default:
                 printf("\nQuery not correct \n");
                 break;

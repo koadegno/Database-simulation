@@ -36,7 +36,7 @@ void select_commande(database_t* student_db)
     struct tm *annif = (struct tm *)malloc(sizeof(struct tm) * 1);
         
     printf("Entrer une commande :\n>> ");
-    db_afficher(student_db);
+    //db_afficher(student_db);
     while (fgets(input, 64, stdin)){
             database_t resultat;
             db_init(&resultat);

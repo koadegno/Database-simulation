@@ -1,8 +1,41 @@
-\documentclass[]{article}
+\documentclass[a4paper, 12pt]{article}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
 
 \begin{document}
+\tableofcontents
 
-Salut c'est mon 2eme document Latex
+\title{INFO-F-201 – Systèmes d’exploitations\\
+Rapport du projet de programmation système en C
+TinyDB}
+\author{Adegnon Kokou\\501910}
+\maketitle{}
+
+\section{Difficultés et solutions}
+
+\subsection{Ajout de Thread}
+L'utilisation de thread dans ce projet était ,selon moi, la partie la plus difficule
+du travaille. En effet avant d'implementer les threads il fallait penser 
+l'architecture du projet. de prime abord je me dirigait vers une liste chainé trier qui m'aurait permis d'avoir un thread qui
+ne s'occupe que du trie apres un "add", un "delete" ou un "upgrade" mais la difficulté ce trouvais dans le choix de l'option a trier.
+Une autre fonctionalite qu'aurait permis les threads c'est le parralelisme des commandes quand ils sont executer avec une redirection de fichier.
+cette approche permet d'executer une enorme quantité de commande "en même temps". Toutefois le but d'excuter des commandes a partir d'un fichier est de pouvoir
+automatiser certaine action sequentiellement.
+
+La dernier utilisation des threads et mon implementation reel a été d'avoir des threads qui execute un "select",en parcourant lienerement la liste chainé et sur different morceau de la base de donnée pour ajouter le resultat a une autre base de donné temporaire. Pour ce faire il me fallait delimiter les zones qu'allait traiter 
+chaque threads et ajouter l'etudiants s'il respectait les critere de selection , donc l'ecriture dans la base de donne temporaire doit etre entourer
+de mutex pour empecher l'ecriture en concurence sur un meme indice ou d'autre probleme auquelle je n'aurais 
+pas penser suite a cette acces en concurence a l'ecriture de chaque threads.
+
+Les threads ne sont lancer que pour les grandes base de données ayant un nombre d'etudiant strictement superieur a 999998. Etant données que les thread prennenet uncertain temps a ce lancer j'ai juger inutile de faire une recherche lineaire avec plussieur thread si la base de données n'etait pas assez grande pour rentabiliser ce temps. Une des difficulter qui c'est ajouter apres cela etait le choix
+du nombre de threads en sachant qu'il fallait un nombre qui soit assez grand pour etre efficaces et surtout un nombre qui soit le plus grand commun diviseur avec le nombre 
+d'etudiant present dans la base de donnée  pour permettre une repartition equitable entre chaque thread. 
+
+J'ai opter pour une solution tres simpliste qui a ete de choisir un nombre arbitraire de thread et de couper ma liste de maniere equitable pour au finale rajouter dans le dernier thread les elements qui ne sont rentrer dans aucun  des thread  
+
+
 
 
 \end{document}

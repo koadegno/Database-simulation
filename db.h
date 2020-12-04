@@ -124,11 +124,6 @@ void db_load(database_t *db, const char *path){
     if(!file_data) {fclose(file_data);return;} // Don't get acces to file
     
     student_t obj_student;
-
-    // get nb of line in the file
-    /*fseek(file_data, 0L, SEEK_END); 
-    long int file_size = ftell(file_data)/sizeof(student_t);
-    fseek(file_data, sizeof(student_t), SEEK_SET);*/
     
     while(fread(&obj_student,sizeof(obj_student),1,file_data))
     {

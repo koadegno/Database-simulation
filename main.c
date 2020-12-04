@@ -16,10 +16,10 @@
 
 char save_file[256] = "database.bin";
 database_t* DATABASE;
-int querie_running = 2;// 1 running and 0 not running
+int querie_running = 2; // 1 running query and 0 not running query 2 
 
 static void stop_signal(int sign){
-    
+    printf("voila la valeur : %d",querie_running);
     if(querie_running == 2){
         printf("Fermeture ");
         db_save(DATABASE,save_file);
@@ -36,7 +36,6 @@ void select_commande(database_t* student_db)
     struct tm *annif = (struct tm *)malloc(sizeof(struct tm) * 1);
         
     printf("Entrer une commande :\n>> ");
-    //db_afficher(student_db);
     while (fgets(input, 64, stdin)){
             database_t resultat;
             db_init(&resultat);

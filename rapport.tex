@@ -7,53 +7,51 @@
 \begin{document}
 \tableofcontents
 
-\title{INFO-F-201 – Systèmes d’exploitations\\
-Rapport du projet de programmation système en C
-TinyDB}
+\title{INFO-F-201 – Systèmes d’exploitations\\Rapport du projet de programmation système en C\\TinyDB}
 \author{Adegnon Kokou\\501910}
 \maketitle{}
 \section{Description}
 
-Le projet TinyDB a pour but de simuler 4 commandes primaire executer sur une base de donnée, "select", "insert","update","delete".
-le programme est structurer en plusieur structure, une structure pour stocker les informations sur les etudiants, une autre pour representer la base de donnée.
-cette dernier structure est sous la forme d'une liste dynamique avec une taille logique qui permet d'acceder au element par indice et une taille reel represente l'espace reel
-que prends la liste dynamique. a cela s'ajoute des fonctions pour agir sur la base de donnée et des fonctions pour executer les commandes.
+Le projet TinyDB a pour but de simuler 4 commandes primaire exécuter sur une base de donnée, "select", "insert","update","delete".
+le programme est structuré en plusieurs structures, une structure pour stocker les informations sur les étudiants, une autre pour représenter la base de donnée.
+Ce dernier structure est sous la forme d'une liste dynamique avec une taille logique qui permet d’accéder aux éléments par indice et une taille réelle représente l'espace réel
+que prend la liste dynamique. A cela s'ajoutent des fonctions pour agir sur la base de donnée et des fonctions pour exécuter les commandes.
 
-Mon programme ne gere pas les erreurs typographique au sein des commandes, de plus il ne peut qu'executer une commande a la fois et pour finir les resultats d'une commande sont ecrit 
-dans le dossier logs qui doit etre cree au prealable.
+Mon programme ne gère pas les erreurs typographique au sein des commandes, de plus il ne peut qu’exécuter une commande à la fois et pour finir les résultats d'une commande sont écrit 
+dans le dossier logs qui doit être créé au préalable.
 
 \section{Difficultés et solutions}
 
 	\subsection{Ajout de Thread}
-L'utilisation de thread dans ce projet était ,selon moi, la partie la plus difficule
-du travaille. En effet avant d'implementer les threads il fallait penser 
-l'architecture du projet. de prime abord je me dirigait vers une liste dynamique trier qui m'aurait permis d'avoir un thread qui
-ne s'occupe que du trie apres un "add", un "delete" ou un "upgrade" mais la difficulté ce trouvais dans le choix de l'option a trier.
+L'utilisation de thread dans ce projet était ,selon moi, la partie la plus difficile
+du travail. En effet, avant d’implémenter les threads, il fallait penser 
+l'architecture du projet. De prime abord, je me dirigeais vers une liste dynamique trié qui m'aurait permis d'avoir un thread qui
+ne s'occupe que du tri après un "insert", un "delete" ou un "upgrade" mais la difficulté se trouvais dans le choix de l'option à trier.
 J'ai opté pour une simple liste dynamique sans aucun trie.
 
-Une autre fonctionalite que les threads aurait permis, est le parrallelisme des commandes lorsqu'ils sont executé avec une redirection de fichier.
-cette approche permet d'executer une enorme quantité de commande "en même temps". Toutefois le but d'excuter des commandes a partir d'un fichier est de pouvoir
-automatiser certaine action sequentiellement.
+Une autre fonctionnalité que les threads auraient permis, est le parallélisme des commandes lorsqu'ils sont exécutés avec une redirection de fichier.
+Cette approche permet d’exécuter une énorme quantité de commande "en même temps". Toutefois le but d’exécuter des commandes à partir d'un fichier est de pouvoir
+automatiser certaines actions séquentiellement.
 
-La dernier utilisation des threads et mon implementation reel a été d'avoir des threads qui execute un "select",en parcourant lienerement la liste dynamique et sur different morceau de la base de donnée pour ajouter le resultat a une autre base de donné temporaire. Pour ce faire il me fallait delimiter les zones qu'allait traiter 
-chaque threads et ajouter l'etudiants s'il respectait les critere de selection, donc l'ecriture dans la base de donne temporaire doit etre entourer
-de mutex pour empecher l'ecriture en concurence sur un meme indice ou d'autre probleme auquelle je n'aurais 
-pas penser suite a cette acces en concurence a l'ecriture de chaque threads.
+La dernière utilisation des threads et mon implémentation réelle a été d'avoir des threads qui exécutent un "select",en parcourant linéairement la liste dynamique et sur différent morceau de la base de donnée pour ajouter le résultat a une autre base de donnée temporaire. Pour ce faire il me fallait délimiter les zones qu'allait traiter 
+chaque threads et ajouter l’étudiante s'il respectait les critères de sélection, donc l’écriture dans la base de donnée temporaire doit être entourer
+de mutex pour empêcher l’écriture en concurrence sur un même indice ou d'autre problème auquel je n'aurais 
+pas penser suite à cet accès en concurrence à l’écriture de chaque thread.
 
-Les threads ne sont lancer que pour les grandes base de données ayant un nombre d'etudiant strictement superieur a 999998. Etant données que les thread prennenet un certain temps a ce lancer j'ai juger inutile de faire une recherche lineaire avec plussieur thread si la base de données n'etait pas assez grande pour rentabiliser ce temps. Une des difficulter qui c'est ajouter apres cela etait le choix
-du nombre de threads en sachant qu'il fallait un nombre qui soit assez grand pour etre efficaces et surtout un nombre qui soit le plus grand commun diviseur avec le nombre 
-d'etudiant present dans la base de donnée  pour permettre une repartition equitable entre chaque thread. 
+Les threads ne sont lancés que pour les grandes bases de donnée ayant un nombre d’étudiant strictement supérieur à 999 998. Étant donné que les threads prennent un certain temps à ce lancer, j'ai jugé inutile de faire une recherche linéaire avec plusieurs threads si la base de donnée n’était pas assez grande pour rentabiliser ce temps. Une des difficultés qui s'est ajoutées après cela était le choix
+du nombre de threads en sachant qu'il fallait un nombre qui soit assez grand pour être efficaces et surtout un nombre qui soit le plus grand commun diviseur avec le nombre 
+d’étudiants présent dans la base de donnée  pour permettre une répartition équitable entre chaque thread. 
 
-J'ai opter pour une solution tres simpliste qui a ete de choisir un nombre arbitraire de thread et de couper ma liste de maniere equitable pour au finale rajouter dans le dernier thread les elements qui ne sont rentrer dans aucun  des thread. En plus a cella, j'ai rajouter des mutex pour un meilleur controle des sections critiques.
+J'ai opté pour une solution très simpliste, qui a été de choisir un nombre arbitraire de thread et de couper ma liste de manière équitable pour aux finale rajouter dans le dernier thread les éléments qui ne sont rentrés dans aucun des threads. En plus à cella, j'ai rajouté des mutex pour un meilleur contrôle des sections critiques.
 
 
-	\subsection{Supression dans la base de donnée}
+	\subsection{Suppression dans la base de donnée}
 
-Executer un "delete" dans la base de donnée est assez compliquer sur une liste dynamique comme implementer dans mon code. l'implementation classique se compose d'un pointeur vers le
-suivant et de l'element a stocker donc pour faire une suppression a un endroit quelconque il suffit d'acceder a l'element precedent et de faire pointer le pointeur vers le suivant vers le suivant de l'element a supprimer. Cependant,dans mon cas il n'y a pas ce pointeur donc la suppresion d'un element qui n'est pas le premier ou le dernier risque de laisser des trou dans la liste.
+Exécuter la commande "delete" dans la base de donnée est assez compliquer sur une liste dynamique. L’implémentation classique pour une liste chaîné dynamique se compose d'un pointeur vers le
+suivant et de l'élément à stocké donc pour faire une suppression à un endroit quelconque il suffit d’accéder à l’élément précédent et de faire pointer le pointeur vers le suivant vers le suivant de l’élément à supprimer. Cependant,dans mon cas, il n'y a pas ce pointeur donc la suppression d'un élément risque de laisser des trous dans la liste.
 
-Mon implementation du "delete" est la suivante, parcourir le liste a l'envers, executer un swap entre le dernier element de la liste et l'element a supprimer et pour finir incrementer un compteur qui m'indique le dernier elements puisque le dernier element ne peut plus etre swapper et dois surtout etre supprimer.
-Apres avoir parcourus toute la liste il suffit de soustraire, de la taille de la liste, le compteur qui indique le dernier element.
+Mon implémentation du "delete" est la suivante, parcourir la liste à l'envers, exécuter un swap entre le dernier élément de la liste et l’élément à supprimer et pour finir incrémenter un compteur qui m'indique le dernier éléments puisque le dernier élément ne peut plus être swapper et dois surtout être supprimé.
+Après avoir parcouru toute la liste, il suffit de soustraire, de la taille de la liste, le compteur qui indique le dernier élément.
 
 
 

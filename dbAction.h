@@ -15,7 +15,7 @@
 #include "writelog.h"
 #define thread_max 4
 
-pthread_mutex_t lock;           /** mutex to managa **/
+pthread_mutex_t lock;           /** mutex to manage critique section**/
 pthread_t t1; pthread_t t2; pthread_t t3; pthread_t t4;
 pthread_t thread[thread_max];   /** thread to manage **/
 int current_find_thread = 0;    /**nb of current thread **/
@@ -189,7 +189,7 @@ void *find_in_section(void* val){
  * search inside de db depending of the field
  * using thread (thread_max)
  */
-void db_search(database_t* start_db, database_t* end_db,char to_search[], int field){
+void db_search(database_t* start_db, database_t* end_db,const char to_search[], int field){
 
     //printf("1 My va   lue : %s\n",to_search);
         
@@ -290,7 +290,7 @@ void db_search(database_t* start_db, database_t* end_db,char to_search[], int fi
  * Execute select query for database 999999 elements
  * 
  */
-void query_select_normal(database_t *source,database_t* dest,char* field, char* value){
+void query_select_normal(database_t *source,database_t* dest,const char* field,const char* value){
 
     
     for(size_t j =0; j< source->lsize; j++){
@@ -353,7 +353,7 @@ void error()
  * Choose the right field to lauch the search
  * 
  */
-bool choose_right_field_to_work(char* field,char* value,database_t* student_db,database_t* resultat,LogPath* log){
+bool choose_right_field_to_work(const char* field,char* value,database_t* student_db,database_t* resultat,LogPath* log){
     clock_t start, end;
     double cpu_time_used;
 
@@ -399,7 +399,7 @@ bool choose_right_field_to_work(char* field,char* value,database_t* student_db,d
  * delete in termes of which field is select and the string search_for
  *  
  */
-void delete(database_t *source,char* search_for,int field,LogPath* log,database_t *res){
+void delete(database_t *source, char* search_for,int field,LogPath* log,database_t *res){
     size_t max = source->lsize;
     int reduc = 0;
     int i = (source->lsize)-1;
@@ -488,7 +488,9 @@ void delete(database_t *source,char* search_for,int field,LogPath* log,database_
 
 }
 
-
+/**
+ * set source->data[index] with the right field to value
+ */
 void do_modification(database_t *source,size_t index,char* field_to_mod,char* value){
 
 
@@ -532,8 +534,10 @@ void do_modification(database_t *source,size_t index,char* field_to_mod,char* va
         }
 }
 
-
-void update_db(database_t *source,char *field_fielter, char* field_to_up, char* value,char* last_value,LogPath* log, database_t* res){
+/**
+ * Just update the db source
+ */
+void update_db(database_t *source,char *field_fielter,char* field_to_up, char* value,char* last_value,LogPath* log, database_t* res){
     clock_t start, end;
     double cpu_time_used;
     

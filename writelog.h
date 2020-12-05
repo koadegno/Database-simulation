@@ -12,10 +12,14 @@
 
 # define TIME_SIZE 40
 
+
+/**
+ * represente the Log path for a query
+ */
 typedef struct 
 {
-    char file_path[64];
-    char query[64];
+    char file_path[64]; /** path of the file */
+    char query[64];     /** the query runung */
 } LogPath;
 
 

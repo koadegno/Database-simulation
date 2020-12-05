@@ -16,12 +16,13 @@
 
 char save_file[256] = "database.bin";
 database_t* DATABASE;
+
 int querie_running = 2; // 1 running query and 0 not running query 2 
 
-static void stop_signal(int sign){
-    printf("voila la valeur : %d",querie_running);
+static void stop_signal(int sign){ // save and exit
+    
     if(querie_running == 2){
-        printf("Fermeture ");
+        printf("\nFermeture\n");
         db_save(DATABASE,save_file);
         exit(0);}
     printf("\n*** WAIT UNTIL THE AND OF THE QUERY ***\n\n");
@@ -31,21 +32,19 @@ static void stop_signal(int sign){
 
 void select_commande(database_t* student_db)
 {
-    char field[64], value[64], input[64], fname[64], lname[64], section[64], field_filter[64], value_filter[64], field_to_update[64], update_value[64], *commd_rest, *commd;
-    unsigned id;
-    struct tm *annif = (struct tm *)malloc(sizeof(struct tm) * 1);
+    char field[64], value[64], input[64], field_filter[64], value_filter[64], field_to_update[64], update_value[64], *commd_rest, *commd;
         
     printf("Entrer une commande :\n>> ");
-    while (fgets(input, 64, stdin)){
+    while (fgets(input, 64, stdin)){ // stop with CTRL + D or any signal
             database_t resultat;
-            db_init(&resultat);
-            LogPath log;
+            db_init(&resultat); // stocke resultat of each commande for he log
+            LogPath log; 
             
             char cpy_input[64]; strcpy(cpy_input,input);
             if (cpy_input[strlen(cpy_input)-1] == '\n'){
                 cpy_input[strlen(cpy_input) -1] = '\0';}
 
-            querie_running = 1;
+            querie_running = 1; // can't stop with CTRL + C
             printf("\n- commande : %s\n", input);
             commd_rest = input;
             commd = strtok_r(NULL, " ", &commd_rest);
@@ -55,7 +54,6 @@ void select_commande(database_t* student_db)
             case 's':
                 
                 // if command not good
-                
                 if (!parse_selectors(commd_rest, field, value))
                 {
                     error();
@@ -73,13 +71,12 @@ void select_commande(database_t* student_db)
                 {
                 clock_t start, end;
                 double cpu_time_used;
-                if(!parse_insert(commd_rest,fname,lname,&id,section,annif)){
+                student_t new_stud;
+                if(!parse_insert(commd_rest,new_stud.fname,new_stud.lname,&(new_stud.id),new_stud.section,&(new_stud.birthdate))){
                     error();
                     break;
                 }
-                // create new student            
-                student_t new_stud; new_stud.id=id;strcpy(new_stud.fname,fname);
-                strcpy(new_stud.lname,lname);strcpy(new_stud.section,section); new_stud.birthdate = *annif;
+                // create new student
                 InitLogPath(&log,cpy_input,1);
 
                 //get the time and execute the action
@@ -144,7 +141,6 @@ void select_commande(database_t* student_db)
     
         if(querie_running==0){
             db_save(student_db,save_file);
-            //printf("\n**Sauvegarde de la Base de données **\n\n");
             exit(0);}
         querie_running = 2;
     }
@@ -160,10 +156,8 @@ int main(int argc, char const *argv[])
     stop_procc.sa_flags = SA_RESTART;
 
     sigaction(SIGINT,&stop_procc,NULL); //  CTRL + C
-    sigaction(SIGQUIT,&stop_procc,NULL); //  CTRL + D
 
-    
-    const char *student_file;
+    const char *student_file;database_t db_student;DATABASE = &db_student;
 
     if (argc > 2)
     {
@@ -174,21 +168,18 @@ int main(int argc, char const *argv[])
     if (argc == 2)
     {
         student_file = argv[1];
-        database_t db_student;
-        db_init(&db_student);printf("\n\n*** INITIALISATION DE LA BASE DE DONNEES ***\n\n");
+        db_init(&db_student); printf("\n\n*** INITIALISATION DE LA BASE DE DONNEES ***\n\n");
         db_load(&db_student, student_file);
-        DATABASE = &db_student;
-        strcpy(save_file,student_file);
+        strcpy(save_file,student_file); // file name in global var
         select_commande(&db_student);
                 
     }
     else
     {
-        database_t db_student;
         db_init(&db_student);printf("\n*** INITIALISATION DE LA BASE DE DONNEES ***\n");
-        DATABASE = &db_student;
         select_commande(&db_student);
     }
+
     db_save(DATABASE,save_file);
     printf("TERMINAISON ...\n");
     

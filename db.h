@@ -82,14 +82,9 @@ void db_save(database_t *db, const char *path){
 
     if (!ptr_file){ printf("\nERREUR FILE\n"); return;}
 
-    if (db->lsize > 0){
-        student_t var = db->data[db->lsize-1];
-        student_to_str(t,&var);
+    for(size_t i =0; i < db->lsize; i++){
+        fwrite(&(db->data[i]),sizeof(db->data[i]),1,ptr_file);
 
-        for(size_t i =0; i < db->lsize; i++){
-            fwrite(&(db->data[i]),sizeof(db->data[i]),1,ptr_file);
-
-        }
     }
     //db_afficher(db);
     fclose(ptr_file);

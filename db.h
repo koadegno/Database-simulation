@@ -78,8 +78,6 @@ void db_delete(database_t *db, student_t *s){
 void db_save(database_t *db, const char *path){
     
     FILE* ptr_file = fopen(path,"wb");
-    char t[256];
-
     if (!ptr_file){ printf("\nERREUR FILE\n"); return;}
 
     for(size_t i =0; i < db->lsize; i++){
